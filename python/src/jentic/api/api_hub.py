@@ -256,6 +256,7 @@ class JenticAPIClient:
                         summary=wf.get("name", wf.get("workflow_id", "")),
                         description=wf.get("description", ""),
                         match_score=wf.get("distance", 0.0),
+                        api_name=wf.get("api_name", ""),
                     )
                 )
             except Exception as e:
@@ -275,6 +276,7 @@ class JenticAPIClient:
                         path=op.get("path", ""),
                         method=op.get("method", ""),
                         match_score=op.get("distance", 0.0),
+                        api_name=op.get("api_name", ""),
                     )
                 )
             except Exception as e:

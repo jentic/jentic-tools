@@ -185,7 +185,7 @@ class LLMToolSpecManager:
         parameters = self._extract_parameters(workflow)
         required = self._extract_required_parameters(workflow)
 
-        return {
+        schema = {
             "name": workflow_id,
             "description": workflow.get("description", f"Execute the {workflow_id} workflow"),
             "parameters": {
@@ -194,6 +194,10 @@ class LLMToolSpecManager:
                 "required": required,
             },
         }
+        # Propagate api_name if present
+        if "api_name" in workflow and workflow["api_name"]:
+            schema["api_name"] = workflow["api_name"]
+        return schema
 
     def _create_openai_operation_schema(
         self, operation_uuid: str, operation: dict[str, Any]
@@ -215,7 +219,7 @@ class LLMToolSpecManager:
             or f"Execute {operation.get('method', 'HTTP')} request to {operation.get('path', 'endpoint')}"
         )
 
-        return {
+        schema = {
             "name": tool_name,
             "description": description,
             "parameters": {
@@ -224,6 +228,10 @@ class LLMToolSpecManager:
                 "required": required,
             },
         }
+        # Propagate api_name if present
+        if "api_name" in operation and operation["api_name"]:
+            schema["api_name"] = operation["api_name"]
+        return schema
 
     def _create_anthropic_tool_specs(self) -> dict[str, Any]:
         """Create tool specifications for Anthropic's Claude.

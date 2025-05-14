@@ -262,29 +262,11 @@ class JenticConfig:
                 openapi_files_dict = exec_files_response.files.get("open_api", {})
                 if file_id in openapi_files_dict:
                     openapi_file = openapi_files_dict[file_id]
-                    source_descriptions[openapi_file.filename] = openapi_file.content
 
-            # Extract all workflows defined within this specific Arazzo document
-            workflows_in_doc = JenticConfig._extract_workflow_details(arazzo_doc)
-            if workflow_entry.workflow_id and workflow_entry.workflow_id in workflows_in_doc:
-                workflow_details = workflows_in_doc[workflow_entry.workflow_id]
-                workflow_details["workflow_uuid"] = workflow_id
-                workflow_details["security_requirements"] = (
-                    JenticConfig._flatten_security_requirements(
-                        AuthProcessor.get_security_requirements_for_workflow(
-                            workflow_id=workflow_entry.workflow_id,
-                            arazzo_spec=arazzo_doc,
-                            source_descriptions=source_descriptions,
-                        )
-                    )
-                )
-                extracted_workflow_details[workflow_entry.workflow_id] = workflow_details
-            else:
-                logger.error(
-                    f"Requested workflow UUID {workflow_id} with friendly_id '{workflow_entry.workflow_id}' "
-                    f"not found within its own Arazzo document's extracted details."
-                )
-        return all_arazzo_specs, extracted_workflow_details
+    # Step 3: Extract workflow details
+    all_arazzo_specs, extracted_workflow_details = JenticConfig._extract_all_workflow_details(
+        exec_files_response, workflow_uuids
+    )
 
     @staticmethod
     def _extract_all_operation_details(
@@ -326,7 +308,7 @@ class JenticConfig:
                     )
                 except Exception as e:
                     logger.error(f"Failed to extract operation IO for {operation_uuid}: {e}")
-            extracted_operation_details[operation_uuid] = {
+            operation_dict = {
                 "operation_uuid": operation_uuid,
                 "method": getattr(operation_entry, "method", None),
                 "path": getattr(operation_entry, "path", None),
@@ -336,6 +318,10 @@ class JenticConfig:
                     io_details["outputs"] if io_details and "outputs" in io_details else None
                 ),
             }
+            # Ensure api_name is preserved if present in operation_entry
+            if hasattr(operation_entry, "api_name") and getattr(operation_entry, "api_name", None):
+                operation_dict["api_name"] = getattr(operation_entry, "api_name")
+            extracted_operation_details[operation_uuid] = operation_dict
         return extracted_operation_details
 
     @staticmethod
