@@ -116,6 +116,13 @@ class HTTPTransport(BaseTransport):
             result = await self.adapter.generate_runtime_config(data)
             return JSONResponse(result)
 
+        @self._app.post("/api/submit_feedback")
+        async def submit_feedback(request: Request):
+            """MCP endpoint for submitting feedback."""
+            data = await request.json()
+            result = await self.adapter.submit_feedback(data)
+            return JSONResponse(result)
+
     async def start(self) -> None:
         """Start the HTTP server."""
         config = uvicorn.Config(app=self._app, host=self.host, port=self.port, log_level="info")

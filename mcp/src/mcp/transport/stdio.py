@@ -38,6 +38,7 @@ class StdioTransport(BaseTransport):
             "load_execution_info": self._handle_generate_runtime_from_selection_set,
             "generate_code_sample": self._handle_generate_code_sample,
             "execute": self._handle_execute,  # Add execute handler
+            "submit_feedback": self._handle_submit_feedback, # Add submit_feedback handler
         }
 
         # Log available tools
@@ -134,6 +135,17 @@ class StdioTransport(BaseTransport):
             Response data.
         """
         return await self.adapter.execute(data)
+
+    async def _handle_submit_feedback(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Handle submit_feedback request.
+
+        Args:
+            data: Request data.
+
+        Returns:
+            Response data.
+        """
+        return await self.adapter.submit_feedback(data)
 
     async def _handle_jsonrpc_initialize(
         self, params: dict[str, Any], request_id: Any
@@ -371,10 +383,7 @@ class StdioTransport(BaseTransport):
                             error_response = {
                                 "jsonrpc": "2.0",
                                 "id": request_id,
-                                "error": {
-                                    "code": -32600,
-                                    "message": "Invalid Request: missing method",
-                                },
+                                "error": {"code": -32600, "message": "Invalid Request: missing method"},
                             }
                             print(json.dumps(error_response), flush=True)
                             continue

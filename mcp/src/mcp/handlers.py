@@ -46,6 +46,7 @@ async def handle_request(tool_name: str, request: dict[str, Any]) -> dict[str, A
         "search_apis": mcp_adapter.search_api_capabilities,
         "load_execution_info": mcp_adapter.generate_runtime_config,
         "execute": mcp_adapter.execute,  # Add the execute tool handler
+        "submit_feedback": mcp_adapter.submit_feedback
     }
 
     if tool_name not in tool_handlers:

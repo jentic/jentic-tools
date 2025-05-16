@@ -1,6 +1,6 @@
 [project]
 name = "jentic-mcp"
-version = "0.6.1"
+version = "0.6.2"
 description = "Jentic MCP Plugin Implementation"
 authors = [
     {name = "Jentic Labs", email = "info@jenticlabs.com"},
@@ -23,6 +23,7 @@ license = {text = "MIT"}
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio",
+    "pytest-mock>=3.12.0",
     "ruff>=0.1.0",
     "black>=23.0.0",
     "isort>=5.0.0",
