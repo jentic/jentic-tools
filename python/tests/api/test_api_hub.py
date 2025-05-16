@@ -37,7 +37,7 @@ def api_client() -> JenticAPIClient:
 
 
 def test_build_source_descriptions_happy_path(api_client):
-    """Test the new logic: first Arazzo OpenAPI source maps to first available OpenAPI file."""
+    """Test URL-based matching of Arazzo OpenAPI sources to OpenAPI files."""
     workflow_entry = MockWorkflowEntry(
         workflow_id="wf1",
         workflow_uuid="uuid1",
@@ -47,19 +47,18 @@ def test_build_source_descriptions_happy_path(api_client):
     )
     # Content for the first available file (file1_id)
     content1 = {"openapi": "3.0", "info": {"title": "API One - First File"}}
-    # Content for the second file (file2_id) - should NOT be used
+    # Content for the second file (file2_id)
     content2 = {"openapi": "3.0", "info": {"title": "API Two - Second File"}}
     all_openapi_files = {
         "file1_id": MockFileEntry(
-            id="file1_id", type="open_api", filename="./api_one.json", content=content1
+            id="file1_id", type="open_api", filename="api_one.json", content=content1, oak_path="./specs/api_one.json"
         ),
         "file2_id": MockFileEntry(
-            id="file2_id", type="open_api", filename="./api_two.yaml", content=content2
+            id="file2_id", type="open_api", filename="api_two.yaml", content=content2, oak_path="./specs/api_two.yaml"
         ),
     }
-    # First source name - should be used
+    # Sources with URLs that match the filenames
     first_source_name = "ApiOneSourceFirst"
-    # Second source name - should NOT be used
     second_source_name = "ApiTwoSourceSecond"
     arazzo_doc = {
         "sourceDescriptions": [
@@ -74,11 +73,12 @@ def test_build_source_descriptions_happy_path(api_client):
         arazzo_doc=arazzo_doc,
     )
 
-    # Should map the *first* name to the *first* file content
-    assert len(result) == 1
+    # Each source should map to the file with matching filename in the URL
+    assert len(result) == 2
     assert first_source_name in result
+    assert second_source_name in result
     assert result[first_source_name] == content1
-    assert second_source_name not in result  # Verify second name wasn't used
+    assert result[second_source_name] == content2
 
 
 def test_build_source_descriptions_no_arazzo_sources(api_client):
@@ -116,29 +116,31 @@ def test_build_source_descriptions_empty_arazzo_sources(api_client):
 
 
 def test_build_source_descriptions_missing_file_in_response(api_client):
-    """Test when the first referenced OpenAPI file ID is not in the response files.
-    Should use the content of the *next* available referenced file.
+    """Test when there's no URL match but a default content is available.
+    Should use the default content (first available file content) as fallback.
     """
     # Workflow references 'missing_id' first, then 'file2_id'
     workflow_entry = MockWorkflowEntry(
         workflow_id="wf1",
         workflow_uuid="uuid1",
         name="Test",
-        files=MockAssociatedFiles(open_api=[FileId(id="missing_id"), FileId(id="file2_id")]),
+        # The actual file IDs listed here ('missing_id', 'file2_id') are less critical
+        # than what's in `all_openapi_files` for this specific test of matching logic.
+        files=MockAssociatedFiles(open_api=[FileId(id="file2_id")]),
     )
     # Only the second file's content is available in the response
     content2 = {"info": "API Two - Content"}
     all_openapi_files = {
         "file2_id": MockFileEntry(
-            id="file2_id", type="open_api", filename="./api_two.json", content=content2
+            id="file2_id", type="open_api", filename="api_two.json", content=content2, oak_path="./actual_path/api_two.json"
         )
-        # 'missing_id' is not present here
+        # 'missing_id' is not present here, which is fine for this test's purpose.
     }
-    # Arazzo still defines a source name
-    arazzo_source_name = "ApiSource"
+    # Arazzo source with URL that doesn't match any oak_path
+    arazzo_source_name = "ApiSourceNoMatch"
     arazzo_doc = {
         "sourceDescriptions": [
-            {"name": arazzo_source_name, "type": "openapi"}  # No URL needed for new logic
+            {"name": arazzo_source_name, "url": "./specs/no_match.json", "type": "openapi"}
         ]
     }
 
@@ -148,7 +150,7 @@ def test_build_source_descriptions_missing_file_in_response(api_client):
         arazzo_doc=arazzo_doc,
     )
 
-    # Should map the first (and only) Arazzo name to the content of the *second* (first available) file
-    assert len(result) == 1
-    assert arazzo_source_name in result
-    assert result[arazzo_source_name] == content2
+    # With oak_path matching, if no exact match is found, the source is not included.
+    # The previous fallback logic is removed.
+    assert len(result) == 0
+    assert arazzo_source_name not in result

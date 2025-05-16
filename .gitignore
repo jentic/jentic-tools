@@ -34,8 +34,11 @@
 # ==================================
 # ========= Secrets/Env ============
 # ==================================
-# Ensure .env files are ignored globally
+# Ensure all .env files are ignored globally
 **/.env
+**/.env.*
+# But allow example environment files
+!**/.env.example
 
 # ==================================
 # ============= Caches =============

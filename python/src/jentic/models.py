@@ -14,6 +14,7 @@ class FileEntry(BaseModel):
     filename: str
     type: str
     content: Dict[str, Any]  # Content can be any valid JSON object
+    oak_path: Optional[str] = None  # Contextual path for the file, e.g., from Arazzo spec_files
 
 
 # Represents an API reference within a workflow

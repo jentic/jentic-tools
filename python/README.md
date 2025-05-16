@@ -116,9 +116,53 @@ curl -X POST https://api.jentic.com/api/v1/auth/register \
 ### Testing
 
 ```bash
-# Run all tests for jentic
+# Run unit tests for jentic
 pdm run test
+
+# Run integration tests for dev environment
+pdm run integration-dev
+
+# Run integration tests for production environment
+pdm run integration
 ```
+
+#### Integration Test Configuration
+
+Integration tests require environment variables to be set in environment-specific files. An example file is provided that you need to copy and configure:
+
+```bash
+# For development testing
+cp tests/integration/.env.example tests/integration/.env.dev
+
+# For production testing
+cp tests/integration/.env.example tests/integration/.env.prod
+```
+
+After copying, edit these files to include your API credentials and configuration:
+
+1. For development testing: `tests/integration/.env.dev`
+2. For production testing: `tests/integration/.env.prod`
+
+Example configuration:
+
+```
+# Required UUIDs for Discord API testing
+DISCORD_GET_MY_USER_OPERATION_UUID="your_operation_uuid_here"
+DISCORD_GET_USER_DETAILS_WORKFLOW_UUID="your_workflow_uuid_here"
+
+# Base URL for Jentic API (Uncomment for Dev)
+JENTIC_API_URL=https://directory-api.qa1.eu-west-1.jenticdev.net
+
+# Your Discord bot token
+DISCORD_BOTTOKEN="your_bot_token_here"
+```
+
+The integration tests validate:
+1. Loading operation and workflow execution information
+2. Executing Discord operations and workflows
+3. Searching API capabilities
+4. Generating LLM tool definitions
+5. Running LLM tools including both operations and workflows
 
 ### Linting & Formatting
 

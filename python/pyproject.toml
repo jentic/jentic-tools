@@ -1,6 +1,6 @@
 [project]
 name = "jentic"
-version = "0.7.6"
+version = "0.7.7"
 description = "Jentic SDK for the discovery and execution of APIs and workflows"
 authors = [
     {name = "Jentic Labs", email = "info@jenticlabs.com"},
@@ -26,8 +26,10 @@ build-backend = "pdm.backend"
 [tool.pdm]
 [tool.pdm.scripts]
 lint = {composite = ["black .", "isort .", "ruff check .", "mypy ."]}
-test = "pytest"
+test = "pytest --ignore=tests/integration"
 test-real = "python -m tests.arazzo_runner.run_real_tests"
+integration = "pytest tests/integration"
+integration-dev = "pytest tests/integration --test-env=dev"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -67,4 +69,5 @@ dev = [
     "ruff>=0.0.289",
     "isort>=5.12.0",
     "pytest-asyncio>=0.25.3",
+    "python-dotenv>=1.1.0",
 ]
