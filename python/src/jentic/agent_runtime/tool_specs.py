@@ -235,11 +235,6 @@ class LLMToolSpecManager:
         )
         
         name = tool_name
-        if "api_name" in operation:
-            # Only add prefix if api_name is explicitly provided and valid
-            vendor = self._sanitize_vendor_name(operation["api_name"])
-            if vendor:
-                name = f"{vendor}-{tool_name}"
 
         return {
             "name": name,
@@ -396,17 +391,38 @@ class LLMToolSpecManager:
         return workflow_uuid
 
     def _generate_operation_tool_name(self, operation_def: dict[str, Any]) -> str | None:
-        """Generates a tool name for an operation: <verb>-<cleaned_path>."""
+        """Generates a name for an operation based on the HTTP method and path.
+
+        Args:
+            operation_def: Dictionary with operation definition.
+
+        Returns:
+            Generated name for the operation or None if not enough information.
+        """
         method = operation_def.get("method", "").lower()
         path = operation_def.get("path", "")
         cleaned_path = self._clean_path_for_tool_name(path)
-
+        
         if method and cleaned_path:
-            return f"{method}-{cleaned_path}"  # Use hyphen
+            base = f"{method}-{cleaned_path}"
         elif cleaned_path:
-            return cleaned_path
+            base = cleaned_path
         else:
-            return operation_def.get("operation_uuid", "unknown_operation")
+            base = operation_def.get("operation_uuid", "unknown_operation")
+
+        # Vendor prefix logic
+        if "api_name" in operation_def:
+            vendor = self._sanitize_vendor_name(operation_def["api_name"])
+            # Check if base already starts with vendor prefix
+            already_prefixed = base.startswith(f"{vendor}-")
+            
+            # Only add prefix if it doesn't already start with the vendor name
+            if vendor and not already_prefixed:
+                name = f"{vendor}-{base}"
+                return name
+                
+        return base
+
 
     def _extract_parameters(self, definition: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """Extract parameters from a workflow definition.

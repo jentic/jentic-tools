@@ -76,7 +76,7 @@ class Jentic:
         return await self._agent_tool_manager.execute_tool(tool_name=tool_name, inputs=inputs)
 
     async def load_execution_info(
-        self, workflow_uuids: Optional[List[str]], operation_uuids: Optional[List[str]]
+        self, workflow_uuids: Optional[List[str]], operation_uuids: Optional[List[str]], api_name: Optional[str] = None
     ):
         """
         Get the execution configuration for the specified workflow and operation UUIDs.
@@ -85,6 +85,7 @@ class Jentic:
         Args:
             workflow_uuids (Optional[List[str]]): List of workflow UUIDs.
             operation_uuids (Optional[List[str]]): List of operation UUIDs.
+            api_name (Optional[str]): The API name to include in the configuration.
         Returns:
             dict: The generated execution configuration.
         """
@@ -92,6 +93,7 @@ class Jentic:
             workflow_uuids=workflow_uuids,
             operation_uuids=operation_uuids,
             api_hub_client=self._api_hub_client,
+            api_name=api_name,
         )
 
     async def execute_operation(self, operation_uuid: str, inputs: dict) -> Dict[str, Any]:

@@ -42,6 +42,7 @@ class WorkflowEntry(BaseModel):
 # Represents a single operation entry in the 'operations' dictionary
 class OperationEntry(BaseModel):
     id: str
+    api_name: str
     api_version_id: str
     operation_id: Optional[str] = None
     path: str

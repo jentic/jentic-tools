@@ -153,6 +153,7 @@ class JenticConfig:
         api_hub_client: JenticAPIClient,
         workflow_uuids: Optional[List[str]],
         operation_uuids: Optional[List[str]],
+        api_name: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Generate a runtime configuration object from a list of workflow UUIDs and/or operation UUIDs.
@@ -161,7 +162,7 @@ class JenticConfig:
             raise ValueError("No workflow or operation UUIDs provided.")
 
         logger.info(
-            f"Generating config for workflow UUIDs: {workflow_uuids} and operation UUIDs: {operation_uuids}"
+            f"Generating config for workflow UUIDs: {workflow_uuids} and operation UUIDs: {operation_uuids}, API name: {api_name}"
         )
 
         # Step 1: Fetch execution files for both workflows and operations
@@ -193,6 +194,7 @@ class JenticConfig:
             "workflows": extracted_workflow_details,
             "operations": extracted_operation_details,
             "environment_variable_mappings": env_mappings,
+            "api_name": api_name,
         }
         logger.info("Successfully generated runtime configuration.")
         return final_config
@@ -273,6 +275,7 @@ class JenticConfig:
             if workflow_entry.workflow_id and workflow_entry.workflow_id in workflows_in_doc:
                 workflow_details = workflows_in_doc[workflow_entry.workflow_id]
                 workflow_details["workflow_uuid"] = workflow_id
+                workflow_details["api_names"] = [ref.api_name for ref in workflow_entry.api_references]
                 workflow_details["security_requirements"] = (
                     JenticConfig._flatten_security_requirements(
                         AuthProcessor.get_security_requirements_for_workflow(
@@ -335,6 +338,7 @@ class JenticConfig:
                 "method": getattr(operation_entry, "method", None),
                 "path": getattr(operation_entry, "path", None),
                 "summary": getattr(operation_entry, "summary", None),
+                "api_name": getattr(operation_entry, "api_name", None),
                 "inputs": io_details["inputs"] if io_details and "inputs" in io_details else None,
                 "outputs": (
                     io_details["outputs"] if io_details and "outputs" in io_details else None
